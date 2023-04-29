@@ -14,6 +14,8 @@ public class Footsteps : MonoBehaviour {
 
     private AudioClip defaultFootstep;
 
+    [SerializeField] private HearableSound hearableSound;
+
     public enum SurfaceType {
         Concrete,
         Dirt,
@@ -37,7 +39,10 @@ public class Footsteps : MonoBehaviour {
     }
 
     private void PlayFootStep(SurfaceType currentSurfaceType) {
+        if (footSrc == null) return;
+
         AudioClip[] footstepSounds;
+        bool hearable = false;
 
         switch (currentSurfaceType) {
             case SurfaceType.Concrete:
@@ -72,10 +77,13 @@ public class Footsteps : MonoBehaviour {
                 break;
         }
 
+        AudioClip footstepSound;
         // Choose a random footstep sound from the appropriate array
-        AudioClip footstepSound = footstepSounds[speed];
-
         if (footstepSounds.Length == 0) footstepSound = defaultFootstep;
+        else
+            footstepSound = footstepSounds[speed];
+
+        if (hearable && hearableSound != null) hearableSound.EmitSound();
 
         // Play the footstep sound using the AudioSource component
         footSrc.PlayOneShot(footstepSound);
