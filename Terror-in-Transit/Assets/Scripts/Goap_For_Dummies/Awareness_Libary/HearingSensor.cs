@@ -73,7 +73,7 @@ public class HearingSensor : MonoBehaviour {
 
             for (int i = 0; i < path.corners.Length - 1; i++) {
                 totalDist += Vector3.Distance(path.corners[i], path.corners[i + 1]);
-                Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 1f);
+                Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 5f);
             }
 
             return totalDist;

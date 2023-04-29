@@ -9,8 +9,24 @@ public class LookAtTarget : MonoBehaviour {
 
     private Ease ease = Ease.InOutSine;
 
+    private Tween tween;
+    public float stopDuration = 1f;
+    private float timer = -1;
+
     private void Start() {
         LookBackAndForth();
+    }
+
+    public void StopLooking() {
+        tween.Kill();
+
+        timer = stopDuration;
+    }
+
+    private void Update() {
+        if (timer > 0) timer -= Time.deltaTime;
+
+        if (timer == 0) LookBackAndForth();
     }
 
     private void LookBackAndForth() {
@@ -18,7 +34,7 @@ public class LookAtTarget : MonoBehaviour {
         else currentTarget = target1;
 
         // Rotate the GameObject to look at target1, then jump to target2, and finally look back at target1
-        transform.DOLookAt(currentTarget.position, duration).SetEase(ease).OnComplete(() => {
+        tween = transform.DOLookAt(currentTarget.position, duration).SetEase(ease).OnComplete(() => {
             LookBackAndForth();
         });
     }
