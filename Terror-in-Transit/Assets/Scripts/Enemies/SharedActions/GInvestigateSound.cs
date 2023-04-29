@@ -31,11 +31,18 @@ public class GInvestigateSound : GAction {
 
         var tracked = gAgent.agentState.states["CurrentTarget"] as TrackedTarget;
         target = tracked.stimulator.transform;
+
+        //if (!gAgent.agentState.hasState("AgressionLevel")) return false;
+
+        //var agression = gAgent.agentState.states["AgressionLevel"] as string;
+        //if (agression == GGhost.Agression.bored.ToString())
+        //    gAgent.agentState.SetState("AgressionLevel", GGhost.Agression.annoyed);
+
         return true;
     }
 
     public override bool IsAchievable() {
-        //if (!gAgent.agentState.hasState("playerAlertLevel")) return false;
+        if (gAgent.agentState.hasState("VisualOnTarget")) return false;
 
         //var alertLevel = (GGhost.PlayerAlertLevel)gAgent.agentState.states["playerAlertLevel"];
         //if (alertLevel != GGhost.PlayerAlertLevel.Detected) return false;

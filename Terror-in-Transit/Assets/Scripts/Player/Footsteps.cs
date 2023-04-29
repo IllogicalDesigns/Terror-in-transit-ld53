@@ -16,6 +16,9 @@ public class Footsteps : MonoBehaviour {
 
     [SerializeField] private HearableSound hearableSound;
 
+    private float timer;
+    private float footStepTime = 0.5f;
+
     public enum SurfaceType {
         Concrete,
         Dirt,
@@ -28,13 +31,18 @@ public class Footsteps : MonoBehaviour {
 
     // Update is called once per frame
     private void Update() {
-        if (playerMovement.currentSpeed > 0) {
+        if (timer > 0) timer -= Time.deltaTime;
+
+        if (playerMovement.currentSpeed > 0 && timer <= 0) {
             RaycastHit hit;
 
             // Perform the raycast downwards
-            if (Physics.Raycast(transform.position, Vector3.down, out hit, raycastDistance)) {
+            if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hit, raycastDistance)) {
+                Debug.DrawLine(transform.position + Vector3.up, hit.point, Color.cyan, 5f);
                 PlayFootStep(SurfaceType.Grass);
             }
+
+            timer = footStepTime;
         }
     }
 
@@ -78,7 +86,12 @@ public class Footsteps : MonoBehaviour {
         }
 
         AudioClip footstepSound;
+
         // Choose a random footstep sound from the appropriate array
+        if (playerMovement.movementState == PlayerMovement.MovementState.Sprinting) {
+            hearableSound.EmitSound();
+        }
+
         if (footstepSounds.Length == 0) footstepSound = defaultFootstep;
         else
             footstepSound = footstepSounds[speed];

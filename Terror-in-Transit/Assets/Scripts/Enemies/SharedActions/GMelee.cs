@@ -26,6 +26,7 @@ public class GMelee : GAction {
     }
 
     public override bool PrePerform() {
+        gAgent.agentState.SetState("AgressionLevel", GGhost.Agression.agressive);
         return true;
     }
 

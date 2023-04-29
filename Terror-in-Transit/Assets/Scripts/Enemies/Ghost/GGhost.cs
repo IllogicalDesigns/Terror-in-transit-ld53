@@ -11,6 +11,12 @@ public class GGhost : GAgent {
         FullyDetected
     }
 
+    public enum Agression {
+        bored,
+        annoyed,
+        agressive
+    }
+
     [SerializeField] private AwarenessSystem awarenessSystem;
 
     [SerializeField] private TrackedTarget currentTarget;
@@ -25,6 +31,8 @@ public class GGhost : GAgent {
         AddGoal("Chase", 3, false);
         AddGoal("Investigate", 4, false);
         AddGoal("Patrol", 5, false);
+
+        agentState.SetState("AgressionLevel", Agression.bored);
     }
 
     private void Update() {
@@ -69,7 +77,10 @@ public class GGhost : GAgent {
             return;
         }
 
-        agentState.SetState("VisualOnTarget", awarenessSystem.CanSee(currentTarget.stimulator));
+        if (awarenessSystem.CanSee(currentTarget.stimulator))
+            agentState.SetState("VisualOnTarget", true);
+        else
+            agentState.RemoveState("VisualOnTarget");
     }
 
     private bool atAlertState(PlayerAlertLevel alertState) {
@@ -84,12 +95,14 @@ public class GGhost : GAgent {
     public override void OnSuspicious(TrackedTarget target) {
         if (currentTarget == target && atAlertState(PlayerAlertLevel.Suspicious)) return;
         SetPlayerAlertLevel(target, PlayerAlertLevel.Suspicious);
+
         if (target.detectionType == TrackedTarget.DetectionType.Auditory) agentState.SetState("HeardTarget");
         SetBetterCurrentTarget(target);
     }
 
     private void SetBetterCurrentTarget(TrackedTarget target) {
         if (currentTarget == null || target.awareness > currentTarget.awareness) {
+            if (agentState.hasState("HeardTarget") && target.detectionType != TrackedTarget.DetectionType.Auditory) agentState.RemoveState("HeardTarget");
             agentState.SetState("CurrentTarget", target);
             Replan();
         }

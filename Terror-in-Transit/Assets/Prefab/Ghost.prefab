@@ -326,7 +326,7 @@ MonoBehaviour:
   hearingAwarenessBuildRate: 1
   proximityMinimumAwareness: 0
   proximityAwarenessBuildRate: 1
-  awarenessDecayDelay: 0.1
+  awarenessDecayDelay: 1
   awarenessDecayRate: 0.25
   isDebug: 1
 --- !u!114 &5300332823171645501
@@ -505,6 +505,7 @@ MonoBehaviour:
   isInterruptible: 1
   blackListTime: 1
   isBlacklisted: 0
+  waitAtInvestigation: 1
 --- !u!1 &7480778818556988763
 GameObject:
   m_ObjectHideFlags: 0

@@ -26,12 +26,15 @@ public class GChase : GAction {
 
         var tracked = gAgent.agentState.states["CurrentTarget"] as TrackedTarget;
         target = tracked.stimulator.transform;
+
+        gAgent.agentState.SetState("AgressionLevel", GGhost.Agression.agressive);
+
         return true;
     }
 
     public override bool IsAchievable() {
         //if (!gAgent.agentState.hasState("CurrentTarget")) return false;
-        //if (!gAgent.agentState.hasState("VisualOnTarget")) return false;
+        if (!gAgent.agentState.hasState("VisualOnTarget")) return false;
         if (!gAgent.agentState.hasState("playerAlertLevel")) return false;
 
         var alertLevel = (GGhost.PlayerAlertLevel)gAgent.agentState.states["playerAlertLevel"];
