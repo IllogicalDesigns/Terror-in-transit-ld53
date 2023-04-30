@@ -29,8 +29,8 @@ public class GGhost : GAgent {
 
         AddGoal("Attack", 2, false);
         AddGoal("Chase", 3, false);
-        AddGoal("Investigate", 4, false);
-        AddGoal("Patrol", 5, false);
+        //AddGoal("Investigate", 5, false);
+        AddGoal("Patrol", 10, false);
 
         agentState.SetState("AgressionLevel", Agression.bored);
     }
@@ -38,6 +38,16 @@ public class GGhost : GAgent {
     private void Update() {
         HandleVisualState();
         HandleMeleeRange();
+
+        if (currentTarget != null && currentTarget.awareness <= 0) {
+            agentState.RemoveState("CurrentTarget");
+            currentTarget = null;
+        }
+    }
+
+    public void Stun() {
+        AddGoal("Stunned", 1, true);
+        Replan();
     }
 
     // Update is called once per frame
@@ -72,15 +82,20 @@ public class GGhost : GAgent {
     }
 
     private void HandleVisualState() {
-        if (currentTarget == null || currentTarget.detectionType != TrackedTarget.DetectionType.Visual) {
-            agentState.RemoveState("VisualOnTarget");
+        if (currentTarget == null) {
+            return;
+        }
+        else if (currentTarget.stimulator == null) {
+            currentTarget.detectionType = TrackedTarget.DetectionType.Auditory;
             return;
         }
 
         if (awarenessSystem.CanSee(currentTarget.stimulator))
-            agentState.SetState("VisualOnTarget", true);
+            currentTarget.detectionType = TrackedTarget.DetectionType.Visual;
+        else if (currentTarget.detectionType == TrackedTarget.DetectionType.Auditory)
+            currentTarget.detectionType = TrackedTarget.DetectionType.Auditory;
         else
-            agentState.RemoveState("VisualOnTarget");
+            currentTarget.detectionType = TrackedTarget.DetectionType.None;
     }
 
     private bool atAlertState(PlayerAlertLevel alertState) {
@@ -92,50 +107,44 @@ public class GGhost : GAgent {
         return true;
     }
 
-    public override void OnSuspicious(TrackedTarget target) {
-        if (currentTarget == target && atAlertState(PlayerAlertLevel.Suspicious)) return;
-        SetPlayerAlertLevel(target, PlayerAlertLevel.Suspicious);
-
-        if (target.detectionType == TrackedTarget.DetectionType.Auditory) agentState.SetState("HeardTarget");
-        SetBetterCurrentTarget(target);
-    }
-
     private void SetBetterCurrentTarget(TrackedTarget target) {
-        if (currentTarget == null || target.awareness > currentTarget.awareness) {
-            if (agentState.hasState("HeardTarget") && target.detectionType != TrackedTarget.DetectionType.Auditory) agentState.RemoveState("HeardTarget");
+        if (currentTarget == null) {
+            SetCurrentTarget(target);
+            return;
+        }
+
+        var bestTarget = awarenessSystem.GetMostAwareTrackedTarget();
+        SetCurrentTarget(bestTarget);
+
+        void SetCurrentTarget(TrackedTarget target) {
+            if (target.stimulator != null) Debug.Log("New target " + target.stimulator.name);
+            else Debug.Log("New target " + "Does not have a stimulator to be named");
+
+            AddGoal("Investigate", 5, true);
             agentState.SetState("CurrentTarget", target);
+            currentTarget = target;
             Replan();
         }
     }
 
+    public override void OnSuspicious(TrackedTarget target) {
+        SetBetterCurrentTarget(target);
+    }
+
     public override void OnLostSuspicion(TrackedTarget target) {
-        if (currentTarget == target && atAlertState(PlayerAlertLevel.Suspicious)) return;
-        SetPlayerAlertLevel(target, PlayerAlertLevel.None);
     }
 
     public override void OnDetected(TrackedTarget target) {
-        if (currentTarget == target && atAlertState(PlayerAlertLevel.Detected)) return;
-        SetPlayerAlertLevel(target, PlayerAlertLevel.Detected);
-        if (target.detectionType == TrackedTarget.DetectionType.Auditory) agentState.SetState("HeardTarget");
         SetBetterCurrentTarget(target);
     }
 
     public override void OnLostDetection(TrackedTarget target) {
-        if (currentTarget == target && atAlertState(PlayerAlertLevel.Detected)) return;
-        SetPlayerAlertLevel(target, PlayerAlertLevel.Suspicious);
     }
 
     public override void OnFullyDetected(TrackedTarget target) {
-        if (currentTarget == target && atAlertState(PlayerAlertLevel.FullyDetected)) return;
-        SetPlayerAlertLevel(target, PlayerAlertLevel.FullyDetected);
-        if (target.detectionType == TrackedTarget.DetectionType.Auditory) agentState.SetState("HeardTarget");
         SetBetterCurrentTarget(target);
-
-        if (IsPlayer(target)) Replan();
     }
 
     public override void OnFullyLost(TrackedTarget target) {
-        agentState.RemoveState("playerAlertLevel");
-        if (currentTarget == target) agentState.RemoveState("CurrentTarget");
     }
 }

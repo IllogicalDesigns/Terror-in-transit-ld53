@@ -131,6 +131,23 @@ public static class AgentHelpers {
         return totalDist;
     }
 
+    public static IEnumerator GoToLastTracked(NavMeshAgent agent, TrackedTarget target, float stopDist = 2f, float timeOut = 15f) {
+        agent.stoppingDistance = stopDist - 1;
+        agent.isStopped = false;
+
+        do {
+            agent.SetDestination(target.lastPosition);
+
+            do {
+                yield return new WaitForFixedUpdate();
+            } while (agent.path.status == NavMeshPathStatus.PathInvalid);
+
+            timeOut -= Time.deltaTime;
+        } while (timeOut > 0f && Vector3.Distance(agent.pathEndPosition, agent.transform.position) > stopDist * 2f); //DistanceOfPath(agent.path, agent) > stopDist
+
+        if (timeOut <= 0) Debug.Log("GoToPosition had to force stop based on timeout!!!! this is bad!");
+    }
+
     public static IEnumerator GoToPosition(NavMeshAgent agent, Vector3 target, float stopDist = 2f, float timeOut = 15f) {
         agent.stoppingDistance = stopDist - 1;
         agent.isStopped = false;

@@ -4,18 +4,18 @@ using UnityEngine;
 
 public class GMelee : GAction {
     private Transform target;
-
-    private bool isPerforming = false;
+    private TrackedTarget trackedTarget;
 
     [SerializeField] private GameObject hurtBox;
 
     public override void Interruppted() {
+        StopAllCoroutines();
     }
 
     public override IEnumerator Perform() {
         gAgent.agent.isStopped = true;
         hurtBox.SetActive(true);
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.25f);
         hurtBox.SetActive(false);
         BlacklistAction();
         CompletedAction();
@@ -27,14 +27,16 @@ public class GMelee : GAction {
 
     public override bool PrePerform() {
         gAgent.agentState.SetState("AgressionLevel", GGhost.Agression.agressive);
+        gameObject.SendMessage("SetLightColor", LightColor.LightAwareness.hostile, SendMessageOptions.DontRequireReceiver);
         return true;
     }
 
     public override bool IsAchievable() {
-        if (!gAgent.agentState.hasState("playerAlertLevel")) return false;
+        if (!gAgent.agentState.hasState("CurrentTarget")) return false;
+        trackedTarget = gAgent.agentState.states["CurrentTarget"] as TrackedTarget;
 
-        var alertLevel = (GGhost.PlayerAlertLevel)gAgent.agentState.states["playerAlertLevel"];
-        if (alertLevel != GGhost.PlayerAlertLevel.FullyDetected) return false;
+        if (trackedTarget.detectionType != TrackedTarget.DetectionType.Visual) return false;
+        if (trackedTarget.awareness < 2) return false;
 
         return base.IsAchievable();
     }
@@ -42,8 +44,7 @@ public class GMelee : GAction {
     // Start is called before the first frame update
     private void Start() {
         AddPreconditions("CurrentTarget");
-        AddPreconditions("VisualOnTarget");
-        AddPreconditions("playerAlertLevel");
+
         AddPreconditions("inMeleeRange");
 
         AddEffects("Attack");
@@ -51,10 +52,9 @@ public class GMelee : GAction {
 
     // Update is called once per frame
     private void Update() {
-        if (isPerforming && !gAgent.agentState.hasState("VisualOnTarget")) {
+        if (running && !gAgent.agentState.hasState("inMeleeRange")) {
+            gAgent.AddGoal("SearchChase", 6, true);
             gAgent.Replan();
         }
-
-        //if (timer > 0) timer -= Time.deltaTime;
     }
 }

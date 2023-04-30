@@ -9,6 +9,12 @@ public class GPatrol : GAction {
     [SerializeField] private PatrolPath patrolPath;
 
     [SerializeField] private float waitAtEachPoint = 1f;
+    [SerializeField] private float turnSpeed = 60;
+    [SerializeField] private float agentSpeed = 1f;
+
+    [SerializeField] private float closeDist = 2f;
+
+    private Coroutine coroutine;
 
     public override void Awake() {
         base.Awake();
@@ -17,6 +23,7 @@ public class GPatrol : GAction {
     }
 
     public override void Interruppted() {
+        StopAllCoroutines();
     }
 
     public override IEnumerator Perform() {
@@ -35,7 +42,32 @@ public class GPatrol : GAction {
 
         while (patrolQueue.Count > 0) {
             Transform patrolPoint = patrolQueue.Dequeue();
-            yield return AgentHelpers.GoToTransform(gAgent.agent, patrolPoint);
+
+            if (gAgent.isBehind(patrolPoint.position)) {
+                float angleThreshold = 1f;
+                float rotationTime = 2f;
+
+                gAgent.agent.isStopped = true;
+
+                Quaternion targetRotation = Quaternion.LookRotation(patrolPoint.position - transform.position, Vector3.up);
+                Quaternion startRotation = transform.rotation;
+                float elapsedTime = 0f;
+
+                while (elapsedTime < rotationTime && Quaternion.Angle(transform.rotation, targetRotation) > angleThreshold) {
+                    Quaternion newRotation = Quaternion.Slerp(startRotation, targetRotation, elapsedTime / rotationTime);
+                    transform.rotation = newRotation;
+                    elapsedTime += Time.deltaTime;
+                    yield return new WaitForFixedUpdate(); ;
+                }
+            }
+
+            do {
+                gAgent.agent.isStopped = false;
+                gAgent.agent.SetDestination(patrolPoint.position);
+                yield return new WaitForSeconds(0.1f);
+            } while (Vector3.Distance(transform.position, patrolPoint.position) > closeDist);
+
+            //yield return AgentHelpers.GoToTransform(gAgent.agent, patrolPoint);
             yield return new WaitForSeconds(waitAtEachPoint);
         }
 
@@ -47,6 +79,8 @@ public class GPatrol : GAction {
     }
 
     public override bool PrePerform() {
+        gameObject.SendMessage("SetLightColor", LightColor.LightAwareness.unaware, SendMessageOptions.DontRequireReceiver);
+        gAgent.agent.speed = agentSpeed;
         return patrolPath != null;
     }
 

@@ -15,7 +15,7 @@ public class PlayerMovement : MonoBehaviour {
     private float rotationX = 0.0f;
     private float rotationY = 0.0f;
 
-    [SerializeField] private Transform cameraTransform;
+    [SerializeField] public Transform cameraTransform;
 
     private const float maxY = 90f;
 

@@ -3,102 +3,128 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Footsteps : MonoBehaviour {
-    [SerializeField] private PlayerMovement playerMovement;
-    private float raycastDistance = 1f;
+    [SerializeField] private Vector3 offset = new Vector3(0, 1, 0);
 
-    [SerializeField] private AudioSource footSrc;
+    [SerializeField] private HearableSound footstepHearableSound;
 
-    public AudioClip[] concreteFootstepSounds;
-    public AudioClip[] dirtFootstepSounds;
-    public AudioClip[] grassFootstepSounds;
+    [Header("footstep Sfx")]
+    [SerializeField] private AudioSource footstepSFX;
 
-    private AudioClip defaultFootstep;
+    [SerializeField] private float footstepPitchVariance = 0.1f;
+    [SerializeField] private float footstepStartingPitch = 1;
 
-    [SerializeField] private HearableSound hearableSound;
+    [Header("running footstep Sfx")]
+    [SerializeField] private AudioSource runStepSFX;
 
+    [SerializeField] private float runStepPitchVariance = 0.1f;
+    [SerializeField] private float runStepStartingPitch = 1;
+
+    [Header("Leaves footstep Sfx")]
+    [SerializeField] private LayerMask layerMask;
+
+    [SerializeField] private AudioSource wetFootstepSFX;
+
+    [SerializeField] private float leavesFootstepPitchVariance = 0.1f;
+    [SerializeField] private float leavesFootstepStartingPitch = 1;
+    [SerializeField] private string leavesFootstep = "Leaves";
+
+    private PlayerMovement playerMovement;
+    [SerializeField] private float crouchstepTime = 0.75f;
+    [SerializeField] private float footstepTime = 0.5f;
+    [SerializeField] private float runstepTime = 0.25f;
     private float timer;
-    private float footStepTime = 0.5f;
-
-    public enum SurfaceType {
-        Concrete,
-        Dirt,
-        Grass
-    }
 
     // Start is called before the first frame update
     private void Start() {
+        playerMovement = gameObject.GetComponent<PlayerMovement>();
     }
 
     // Update is called once per frame
     private void Update() {
-        if (timer > 0) timer -= Time.deltaTime;
-
-        if (playerMovement.currentSpeed > 0 && timer <= 0) {
-            RaycastHit hit;
-
-            // Perform the raycast downwards
-            if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hit, raycastDistance)) {
-                Debug.DrawLine(transform.position + Vector3.up, hit.point, Color.cyan, 5f);
-                PlayFootStep(SurfaceType.Grass);
+        if (Input.GetAxis("Vertical") != 0 || Input.GetAxis("Horizontal") != 0) {
+            if (timer > 0) {
+                timer -= Time.deltaTime;
+                return;
             }
 
-            timer = footStepTime;
+            if (playerMovement.movementState == PlayerMovement.MovementState.Crouching) {
+                PlayCrouchStepSFX();
+            }
+            else if (playerMovement.movementState == PlayerMovement.MovementState.Walking) {
+                PlayFootstepSFX();
+            }
+            else {
+                PlayRunstepSFX();
+            }
         }
     }
 
-    private void PlayFootStep(SurfaceType currentSurfaceType) {
-        if (footSrc == null) return;
+    public void PlayLeavesSound() {
+        footstepHearableSound.EmitSound();
+        wetFootstepSFX.pitch = leavesFootstepStartingPitch + Random.Range(-leavesFootstepPitchVariance, leavesFootstepPitchVariance);
+        wetFootstepSFX.Play();
+    }
 
-        AudioClip[] footstepSounds;
-        bool hearable = false;
+    public void PlayCrouchStepSFX() {
+        //Debug.DrawRay(transform.position + offset, Vector3.down * 100f, Color.cyan, 100f);
 
-        switch (currentSurfaceType) {
-            case SurfaceType.Concrete:
-                footstepSounds = concreteFootstepSounds;
-                break;
-
-            case SurfaceType.Dirt:
-                footstepSounds = dirtFootstepSounds;
-                break;
-
-            case SurfaceType.Grass:
-                footstepSounds = grassFootstepSounds;
-                break;
-
-            default:
-                footstepSounds = concreteFootstepSounds;
-                break;
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position + offset, Vector3.down, out hit, Mathf.Infinity, layerMask)) {
+            PlayStepSound(hit);
         }
 
-        int speed = 0;
-        switch (playerMovement.movementState) {
-            case PlayerMovement.MovementState.Crouching:
-                speed = 0;
-                break;
-
-            case PlayerMovement.MovementState.Sprinting:
-                speed = 2;
-                break;
-
-            default:
-                speed = 1;
-                break;
+        void PlayStepSound(RaycastHit hit) {
+            if (hit.collider.CompareTag(leavesFootstep))
+                PlayLeavesSound();
+            else {
+                //footstepSFX.volume = 0.5f;
+                footstepSFX.pitch = footstepStartingPitch + Random.Range(-footstepPitchVariance, footstepPitchVariance);
+                footstepSFX.Play();
+            }
         }
 
-        AudioClip footstepSound;
+        timer = crouchstepTime;
+    }
 
-        // Choose a random footstep sound from the appropriate array
-        if (playerMovement.movementState == PlayerMovement.MovementState.Sprinting) {
-            hearableSound.EmitSound();
+    public void PlayFootstepSFX() {
+        //Debug.DrawRay(transform.position + offset, Vector3.down * 100f, Color.cyan, 100f);
+
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position + offset, Vector3.down, out hit, Mathf.Infinity, layerMask)) {
+            PlayStepSound(hit);
         }
 
-        if (footstepSounds.Length == 0) footstepSound = defaultFootstep;
-        else
-            footstepSound = footstepSounds[speed];
+        void PlayStepSound(RaycastHit hit) {
+            if (hit.collider.CompareTag(leavesFootstep))
+                PlayLeavesSound();
+            else {
+                //footstepSFX.volume = 1f;
+                footstepSFX.pitch = footstepStartingPitch + Random.Range(-footstepPitchVariance, footstepPitchVariance);
+                footstepSFX.Play();
+            }
+        }
 
-        if (hearable && hearableSound != null) hearableSound.EmitSound();
+        timer = footstepTime;
+    }
 
-        // Play the footstep sound using the AudioSource component
-        footSrc.PlayOneShot(footstepSound);
+    public void PlayRunstepSFX() {
+        Debug.DrawRay(transform.position + offset, Vector3.down * 100f, Color.blue, 100f);
+
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position + offset, Vector3.down, out hit, Mathf.Infinity, layerMask)) {
+            PlayRunningSound(hit);
+        }
+
+        void PlayRunningSound(RaycastHit hit) {
+            if (hit.collider.CompareTag(leavesFootstep))
+                PlayLeavesSound();
+            else {
+                footstepHearableSound.EmitSound();
+                runStepSFX.pitch = runStepStartingPitch + Random.Range(-runStepPitchVariance, runStepPitchVariance);
+                runStepSFX.Play();
+            }
+        }
+
+        timer = runstepTime;
     }
 }

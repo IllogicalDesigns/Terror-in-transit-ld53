@@ -68,9 +68,27 @@ public class AwarenessSystem : MonoBehaviour {
 
     public TrackedTarget GetMostAwareTrackedTarget() {
         if (targets.Count == 0) return null;
+        if (targets.Count == 1) return targets.Values.FirstOrDefault();
 
-        var mostAware = targets.Values
-        .OrderByDescending(t => t.awareness)
+        //var mostAware = targets.Values
+        //.OrderByDescending(t => t.awareness)
+        //.FirstOrDefault();
+
+        var targetsToSort = targets.Values.ToList();
+
+        targetsToSort.Sort((x, y) => {
+            if (y.awareness != x.awareness) {
+                return y.awareness.CompareTo(x.awareness);
+            }
+            else if (x.detectionType != y.detectionType) {
+                return x.detectionType.CompareTo(y.detectionType);
+            }
+            else {
+                return y.priority.CompareTo(x.priority);
+            }
+        });
+
+        var mostAware = targetsToSort
         .FirstOrDefault();
 
         return mostAware;
@@ -122,24 +140,32 @@ public class AwarenessSystem : MonoBehaviour {
     private void UpdateAwareness(GameObject targetGameObj, DetectableTarget target, Vector3 position, float awarenessContribution, float minimumAwareness, int priority = 1, TrackedTarget.DetectionType detectionType = TrackedTarget.DetectionType.Auditory) {
         //new object, add it
         if (targets.Count == 0 || !targets.ContainsKey(targetGameObj)) {
-            targets[targetGameObj] = new TrackedTarget(targetGameObj, target, position, Time.time, minimumAwareness, priority, detectionType);
+            targets[targetGameObj] = new TrackedTarget(targetGameObj, target, position, Time.time, minimumAwareness * priority, priority, detectionType);
+            ActivateThresholds(targetGameObj);
         }
         else {
             targets[targetGameObj].detectionType = detectionType;
             //Update target awareness
             if (targets[targetGameObj].UpdateAwareness(target, position, awarenessContribution, minimumAwareness)) {  //TODO remove
-                // Debug.Log("Threshold changed for " + gameObject.name + " threshold: " + targets[targetGameObj].awareness);
+                ActivateThresholds(targetGameObj);
+            }
+
+            if (detectionType == TrackedTarget.DetectionType.Auditory) {
+                targets[targetGameObj].awareness = minimumAwareness * priority;
+                ActivateThresholds(targetGameObj);
             }
         }
 
-        var awareObject = targets[targetGameObj];
-
-        if (awareObject.awareness >= 2f)
-            OnFullyDetected(awareObject);
-        else if (awareObject.awareness >= 1f)
-            OnDetected(awareObject);
-        else
-            OnSuspicious(awareObject);
+        void ActivateThresholds(GameObject targetGameObj) {
+            var awareObject = targets[targetGameObj];
+            //Debug.Log("Threshold changed for " + gameObject.name + " threshold: " + targets[targetGameObj].awareness);
+            if (awareObject.awareness >= 2f)
+                OnFullyDetected(awareObject);
+            else if (awareObject.awareness >= 1f)
+                OnDetected(awareObject);
+            else
+                OnSuspicious(awareObject);
+        }
 
 #if UNITY_EDITOR
         //if (targets != null) {
@@ -163,7 +189,7 @@ public class AwarenessSystem : MonoBehaviour {
         // determine the awareness contribution this frame (stimulation)
         var awarenessContribution = visionSensitivity.Evaluate(dotProduct) * visionAwarenessBuildRate * multi * Time.deltaTime;
 
-        if (isDebug) Debug.Log(gameObject.name + " has Seen " + seen.gameObject.name);
+        if (isDebug && seen.gameObject != null) Debug.Log(gameObject.name + " has Seen " + seen.gameObject.name);
 
         UpdateAwareness(seen.gameObject, seen, seen.transform.position, awarenessContribution, visionMinimumAwareness, 1, TrackedTarget.DetectionType.Visual);
     }
@@ -182,32 +208,32 @@ public class AwarenessSystem : MonoBehaviour {
     }
 
     public void OnSuspicious(TrackedTarget target) {
-        if (isDebug) Debug.Log(gameObject.name + " OnSuspicious(" + target.stimulator.name + ")");
+        if (isDebug && target.stimulator != null) Debug.Log(gameObject.name + " OnSuspicious(" + target.stimulator.name + ")");
         gAgent.OnSuspicious(target);
     }
 
     public void OnLostSuspicion(TrackedTarget target) {
-        if (isDebug) Debug.Log(gameObject.name + " OnLostSuspicion(" + target.stimulator.name + ")");
+        if (isDebug && target.stimulator != null) Debug.Log(gameObject.name + " OnLostSuspicion(" + target.stimulator.name + ")");
         gAgent.OnLostSuspicion(target);
     }
 
     public void OnDetected(TrackedTarget target) {
-        if (isDebug) Debug.Log(gameObject.name + " OnDetected(" + target.stimulator.name + ")");
+        if (isDebug && target.stimulator != null) Debug.Log(gameObject.name + " OnDetected(" + target.stimulator.name + ")");
         gAgent.OnDetected(target);
     }
 
     public void OnFullyDetected(TrackedTarget target) {
-        if (isDebug) Debug.Log(gameObject.name + " OnFullyDetected(" + target.stimulator.name + ")");
+        if (isDebug && target.stimulator != null) Debug.Log(gameObject.name + " OnFullyDetected(" + target.stimulator.name + ")");
         gAgent.OnFullyDetected(target);
     }
 
     public void OnLostDetection(TrackedTarget target) {
-        if (isDebug) Debug.Log(gameObject.name + " OnLostDetection(" + target.stimulator.name + ")");
+        if (isDebug && target.stimulator != null) Debug.Log(gameObject.name + " OnLostDetection(" + target.stimulator.name + ")");
         gAgent.OnLostDetection(target);
     }
 
     public void OnFullyLost(TrackedTarget target) {
-        if (isDebug) Debug.Log(gameObject.name + " OnFullyLost(" + target.stimulator.name + ")");
+        if (isDebug && target.stimulator != null) Debug.Log(gameObject.name + " OnFullyLost(" + target.stimulator.name + ")");
         gAgent.OnFullyLost(target);
     }
 }
@@ -228,9 +254,13 @@ public class TrackedTarget {
 
     public int priority = 0;
 
-    public enum DetectionType { Auditory, Visual, Proximity };
+    public enum DetectionType { None, Auditory, Visual, Proximity };
 
     public DetectionType detectionType;
+
+    public const float SUSMINIMUM = 0;
+    public const float DECTMINIMUM = 1;
+    public const float FULLMINIMUM = 2;
 
     public TrackedTarget(GameObject _stimulator, DetectableTarget _detectable, Vector3 _rawPosition, float _lastSensedTime, float _awareness, int _priority = 1, DetectionType _detectionType = DetectionType.Auditory) {
         this.stimulator = _stimulator;
@@ -249,6 +279,9 @@ public class TrackedTarget {
             detectable = target;
             lastPosition = target.transform.position;
             lastDirection = target.transform.forward;
+        }
+        else {
+            lastPosition = position;
         }
 
         rawPosition = position;

@@ -111,6 +111,8 @@ GameObject:
   - component: {fileID: 1205756750794033952}
   - component: {fileID: 5673386443252718962}
   - component: {fileID: 776290757424953511}
+  - component: {fileID: 6909326940039165270}
+  - component: {fileID: 5814896605568401052}
   m_Layer: 2
   m_Name: Cube
   m_TagString: Untagged
@@ -148,7 +150,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8217008695918097648}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -246,9 +248,9 @@ MonoBehaviour:
   onTriggerStay:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 776290757424953511}
-        m_TargetAssemblyTypeName: HearableSound, Assembly-CSharp
-        m_MethodName: EmitSound
+      - m_Target: {fileID: 4997275079296430117}
+        m_TargetAssemblyTypeName: LookAtTarget, Assembly-CSharp
+        m_MethodName: StopLooking
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -258,6 +260,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 1
+  requiredTag: Player
 --- !u!114 &776290757424953511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -274,6 +277,78 @@ MonoBehaviour:
   intensity: 1
   overrideHearingRange: 0
   audioSource: {fileID: 3878484492548042083}
+--- !u!114 &6909326940039165270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8217008695918097648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a732ff5dc6eed24096dd864eff61e75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  onTriggerEnter:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 9085638834788125369}
+        m_TargetAssemblyTypeName: UnityEngine.Rendering.Universal.DecalProjector,
+          Unity.RenderPipelines.Universal.Runtime
+        m_MethodName: set_material
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 2100000, guid: ef524f2a1e614614c8fd5c2ae2303706,
+            type: 2}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Material, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 1
+      - m_Target: {fileID: 776290757424953511}
+        m_TargetAssemblyTypeName: HearableSound, Assembly-CSharp
+        m_MethodName: EmitSound
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 1
+  requiredTag: Player
+--- !u!114 &5814896605568401052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8217008695918097648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18a4e892aeda2174e9a0b9e629de41c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  onTriggerEnter:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 9085638834788125369}
+        m_TargetAssemblyTypeName: UnityEngine.Rendering.Universal.DecalProjector,
+          Unity.RenderPipelines.Universal.Runtime
+        m_MethodName: set_material
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 2100000, guid: 85b395a4845051947ad23bfb1330398f,
+            type: 2}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Material, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 1
+  requiredTag: Player
 --- !u!1001 &8858858333927702047
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -305,27 +380,27 @@ PrefabInstance:
     - target: {fileID: 1453467520166341849, guid: dcd4a8c7bd6b2c142b77d916a4ca1e90,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.00000035762784
+      value: -0.00000033040507
       objectReference: {fileID: 0}
     - target: {fileID: 1453467520166341849, guid: dcd4a8c7bd6b2c142b77d916a4ca1e90,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: -0.00000013685818
       objectReference: {fileID: 0}
     - target: {fileID: 1453467520166341849, guid: dcd4a8c7bd6b2c142b77d916a4ca1e90,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -1
+      value: -0.9238797
       objectReference: {fileID: 0}
     - target: {fileID: 1453467520166341849, guid: dcd4a8c7bd6b2c142b77d916a4ca1e90,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0.38268322
       objectReference: {fileID: 0}
     - target: {fileID: 1453467520166341849, guid: dcd4a8c7bd6b2c142b77d916a4ca1e90,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
+      value: 45
       objectReference: {fileID: 0}
     - target: {fileID: 1453467520166341849, guid: dcd4a8c7bd6b2c142b77d916a4ca1e90,
         type: 3}
@@ -392,7 +467,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: 0bb88eed5802ba34f91d114e4a980354, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -438,7 +513,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -478,9 +553,33 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &4997275079296430117 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4587232342269283898, guid: dcd4a8c7bd6b2c142b77d916a4ca1e90,
+    type: 3}
+  m_PrefabInstance: {fileID: 8858858333927702047}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4032146727341289056}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f536dc3ab740eaa478918a1e35d5f5db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &7988046214577902278 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1453467520166341849, guid: dcd4a8c7bd6b2c142b77d916a4ca1e90,
     type: 3}
   m_PrefabInstance: {fileID: 8858858333927702047}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &9085638834788125369 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 353058500920652966, guid: dcd4a8c7bd6b2c142b77d916a4ca1e90,
+    type: 3}
+  m_PrefabInstance: {fileID: 8858858333927702047}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0777d029ed3dffa4692f417d4aba19ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

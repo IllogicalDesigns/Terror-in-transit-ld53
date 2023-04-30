@@ -43,6 +43,8 @@ public class HearingSensor : MonoBehaviour {
     private void OnDrawGizmosSelected() {
         var m_Renderer = GetComponent<Renderer>();
 
+        onScreen = OnScreen();
+
         Gizmos.color = hearingColor;
         Gizmos.DrawWireSphere(transform.position, onScreen ? hearingRange : ofScreenHearingRange);
     }

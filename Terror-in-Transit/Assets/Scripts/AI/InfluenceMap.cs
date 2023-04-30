@@ -102,121 +102,121 @@ public class InfluenceMap : MonoBehaviour {
         return GridToWorld(vec.x, vec.y);
     }
 
-    //public IEnumerator HeatWaveChasePropagation(Transform target, GSearchChase.OnCoroutineFinished onFinished, int PROPSTEPS = 10, float PROPTIME = 0.05f) {
-    //    int[,] copyOfGrid = GetGridCopy();
-    //    debugCopyOfGrid = copyOfGrid;
+    public IEnumerator HeatWaveChasePropagation(Transform target, GSearchAfterChase.OnCoroutineFinished onFinished, int PROPSTEPS = 5, float PROPTIME = 0.05f) {
+        int[,] copyOfGrid = GetGridCopy();
+        debugCopyOfGrid = copyOfGrid;
 
-    //    var initPosition = target.position;
-    //    var initDirection = target.forward;
+        var initPosition = target.position;
+        var initDirection = target.position - transform.position;
 
-    //    var nonRoundedLocation = WorldToGrid(initPosition);
-    //    Vector2Int initGridLocation = new Vector2Int(Mathf.RoundToInt(nonRoundedLocation.x), Mathf.RoundToInt(nonRoundedLocation.y));
+        var nonRoundedLocation = WorldToGrid(initPosition);
+        Vector2Int initGridLocation = new Vector2Int(Mathf.RoundToInt(nonRoundedLocation.x), Mathf.RoundToInt(nonRoundedLocation.y));
 
-    //    List<Vector2Int> newBarriers = new List<Vector2Int>();
-    //    List<Vector2Int> newHeat = new List<Vector2Int>();
-    //    List<Vector2Int> oldHeat = new List<Vector2Int>();
+        List<Vector2Int> newBarriers = new List<Vector2Int>();
+        List<Vector2Int> newHeat = new List<Vector2Int>();
+        List<Vector2Int> oldHeat = new List<Vector2Int>();
 
-    //    HeatUpInitLocation(copyOfGrid, ref initGridLocation, newHeat, oldHeat);
-    //    GenerateInitBarrier();
+        HeatUpInitLocation(copyOfGrid, ref initGridLocation, newHeat, oldHeat);
+        GenerateInitBarrier();
 
-    //    for (int i = 0; i < PROPSTEPS; i++) {
-    //        //TODO calculate centriod as heat is built up
-    //        PropagateHeat(copyOfGrid, newHeat, oldHeat);
-    //        CoolOldHeat(copyOfGrid, oldHeat);
-    //        PropagateBarriers(copyOfGrid, newBarriers);
-    //        yield return new WaitForSeconds(PROPTIME);
-    //    }
+        for (int i = 0; i < PROPSTEPS; i++) {
+            //TODO calculate centriod as heat is built up
+            PropagateHeat(copyOfGrid, newHeat, oldHeat);
+            CoolOldHeat(copyOfGrid, oldHeat);
+            PropagateBarriers(copyOfGrid, newBarriers);
+            yield return new WaitForSeconds(PROPTIME);
+        }
 
-    //    onFinished(ChooseChasePointCentroid(oldHeat, copyOfGrid));
-    //    choosenSearchPoint = ChooseChasePointBasedOnCluster(newHeat); //This is used for searching chase as a starting point
+        onFinished(ChooseChasePointCentroid(oldHeat, copyOfGrid));
+        choosenSearchPoint = ChooseChasePointBasedOnCluster(newHeat); //This is used for searching chase as a starting point
 
-    //    void GenerateInitBarrier() {
-    //        ForceALineBehindThePlayer(newBarriers);
+        void GenerateInitBarrier() {
+            ForceALineBehindThePlayer(newBarriers);
 
-    //        List<Vector2Int> neighbors = GetNeighbors(copyOfGrid, initGridLocation.x, initGridLocation.y);
-    //        for (int i = 0; i < neighbors.Count; i++) {
-    //            SetOppositeToBarrier(neighbors[i].x, neighbors[i].y);
-    //        }
+            List<Vector2Int> neighbors = GetNeighbors(copyOfGrid, initGridLocation.x, initGridLocation.y);
+            for (int i = 0; i < neighbors.Count; i++) {
+                SetOppositeToBarrier(neighbors[i].x, neighbors[i].y);
+            }
 
-    //        void ForceALineBehindThePlayer(List<Vector2Int> newBarriers) {
-    //            Vector3 behindPlayer = initPosition + -initDirection * size;
-    //            var behindPlayerGrid = WorldToGrid(behindPlayer);
-    //            if (behindPlayerGrid.x >= 0 && behindPlayerGrid.x < copyOfGrid.GetLength(0) && behindPlayerGrid.y >= 0 && behindPlayerGrid.y < copyOfGrid.GetLength(1)) {
-    //                copyOfGrid[behindPlayerGrid.x, behindPlayerGrid.y] = BARRIER;
-    //                newBarriers.Add(new Vector2Int(behindPlayerGrid.x, behindPlayerGrid.y));
-    //            }
+            void ForceALineBehindThePlayer(List<Vector2Int> newBarriers) {
+                Vector3 behindPlayer = initPosition + -initDirection * size;
+                var behindPlayerGrid = WorldToGrid(behindPlayer);
+                if (behindPlayerGrid.x >= 0 && behindPlayerGrid.x < copyOfGrid.GetLength(0) && behindPlayerGrid.y >= 0 && behindPlayerGrid.y < copyOfGrid.GetLength(1)) {
+                    copyOfGrid[behindPlayerGrid.x, behindPlayerGrid.y] = BARRIER;
+                    newBarriers.Add(new Vector2Int(behindPlayerGrid.x, behindPlayerGrid.y));
+                }
 
-    //            behindPlayer = initPosition + -initDirection * size + -target.right * size;
-    //            behindPlayerGrid = WorldToGrid(behindPlayer);
-    //            if (behindPlayerGrid.x >= 0 && behindPlayerGrid.x < copyOfGrid.GetLength(0) && behindPlayerGrid.y >= 0 && behindPlayerGrid.y < copyOfGrid.GetLength(1)) {
-    //                copyOfGrid[behindPlayerGrid.x, behindPlayerGrid.y] = BARRIER;
-    //                newBarriers.Add(new Vector2Int(behindPlayerGrid.x, behindPlayerGrid.y));
-    //            }
+                behindPlayer = initPosition + -initDirection * size + -target.right * size;
+                behindPlayerGrid = WorldToGrid(behindPlayer);
+                if (behindPlayerGrid.x >= 0 && behindPlayerGrid.x < copyOfGrid.GetLength(0) && behindPlayerGrid.y >= 0 && behindPlayerGrid.y < copyOfGrid.GetLength(1)) {
+                    copyOfGrid[behindPlayerGrid.x, behindPlayerGrid.y] = BARRIER;
+                    newBarriers.Add(new Vector2Int(behindPlayerGrid.x, behindPlayerGrid.y));
+                }
 
-    //            behindPlayer = initPosition + -initDirection * size + target.right * size;
-    //            behindPlayerGrid = WorldToGrid(behindPlayer);
-    //            if (behindPlayerGrid.x >= 0 && behindPlayerGrid.x < copyOfGrid.GetLength(0) && behindPlayerGrid.y >= 0 && behindPlayerGrid.y < copyOfGrid.GetLength(1)) {
-    //                copyOfGrid[behindPlayerGrid.x, behindPlayerGrid.y] = BARRIER;
-    //                newBarriers.Add(new Vector2Int(behindPlayerGrid.x, behindPlayerGrid.y));
-    //            }
-    //        }
-    //    }
+                behindPlayer = initPosition + -initDirection * size + target.right * size;
+                behindPlayerGrid = WorldToGrid(behindPlayer);
+                if (behindPlayerGrid.x >= 0 && behindPlayerGrid.x < copyOfGrid.GetLength(0) && behindPlayerGrid.y >= 0 && behindPlayerGrid.y < copyOfGrid.GetLength(1)) {
+                    copyOfGrid[behindPlayerGrid.x, behindPlayerGrid.y] = BARRIER;
+                    newBarriers.Add(new Vector2Int(behindPlayerGrid.x, behindPlayerGrid.y));
+                }
+            }
+        }
 
-    //    void SetOppositeToBarrier(int row, int col) {
-    //        const float DotFaceForwardForFill = 0.5f;
+        void SetOppositeToBarrier(int row, int col) {
+            const float DotFaceForwardForFill = 0.5f;
 
-    //        // Calculate the world position of the current cell
-    //        Vector3 cellPos = start + new Vector3(row * size + size / 2f, 0f, col * size + size / 2f);
+            // Calculate the world position of the current cell
+            Vector3 cellPos = start + new Vector3(row * size + size / 2f, 0f, col * size + size / 2f);
 
-    //        var playerGrid = WorldToGrid(initPosition);
-    //        var playerCellWorldPos = GridToWorld(playerGrid.x, playerGrid.y);
-    //        // Calculate the vector from the current cell to the given world position
-    //        Vector3 toCell = cellPos - playerCellWorldPos;
+            var playerGrid = WorldToGrid(initPosition);
+            var playerCellWorldPos = GridToWorld(playerGrid.x, playerGrid.y);
+            // Calculate the vector from the current cell to the given world position
+            Vector3 toCell = cellPos - playerCellWorldPos;
 
-    //        // Calculate the dot product between the vector and the opposite direction
-    //        float dotProduct = Vector3.Dot(toCell.normalized, -initDirection.normalized);
+            // Calculate the dot product between the vector and the opposite direction
+            float dotProduct = Vector3.Dot(toCell.normalized, -initDirection.normalized);
 
-    //        // Check if the dot product is above a certain threshold (e.g., 0.8f)
-    //        if (dotProduct > DotFaceForwardForFill) {
-    //            // Set the cell to -1
-    //            copyOfGrid[row, col] = BARRIER;
-    //            newBarriers.Add(new Vector2Int(row, col));
-    //        }
-    //    }
-    //}
+            // Check if the dot product is above a certain threshold (e.g., 0.8f)
+            if (dotProduct > DotFaceForwardForFill) {
+                // Set the cell to -1
+                copyOfGrid[row, col] = BARRIER;
+                newBarriers.Add(new Vector2Int(row, col));
+            }
+        }
+    }
 
-    //public IEnumerator SearchPropagationStep(int[,] map, List<Vector2Int> newHeat, List<Vector2Int> oldHeat, Vector3 targetPosition, Vector3 searchingPoint, GSearch.OnCoroutineFinished onFinished, bool reset = false, int steps = 1) {
-    //    if (reset) {
-    //        map = GetGridCopy();
-    //        debugCopyOfGrid = map;
+    public IEnumerator SearchPropagationStep(int[,] map, List<Vector2Int> newHeat, List<Vector2Int> oldHeat, Vector3 targetPosition, Vector3 searchingPoint /*, GSearch.OnCoroutineFinished onFinished*/, bool reset = false, int steps = 1) {
+        if (reset) {
+            map = GetGridCopy();
+            debugCopyOfGrid = map;
 
-    //        var initPosition = targetPosition;
+            var initPosition = targetPosition;
 
-    //        var nonRoundedLocation = WorldToGrid(initPosition);
-    //        Vector2Int initGridLocation = new Vector2Int(Mathf.RoundToInt(nonRoundedLocation.x), Mathf.RoundToInt(nonRoundedLocation.y));
+            var nonRoundedLocation = WorldToGrid(initPosition);
+            Vector2Int initGridLocation = new Vector2Int(Mathf.RoundToInt(nonRoundedLocation.x), Mathf.RoundToInt(nonRoundedLocation.y));
 
-    //        List<Vector2Int> newBarriers = new List<Vector2Int>();
-    //        newHeat = new List<Vector2Int>();
-    //        oldHeat = new List<Vector2Int>();
+            List<Vector2Int> newBarriers = new List<Vector2Int>();
+            newHeat = new List<Vector2Int>();
+            oldHeat = new List<Vector2Int>();
 
-    //        //GenerateInitBarrier(initGridLocation, newBarriers);
-    //        HeatUpInitLocation(map, ref initGridLocation, newHeat, oldHeat);
-    //    }
+            //GenerateInitBarrier(initGridLocation, newBarriers);
+            HeatUpInitLocation(map, ref initGridLocation, newHeat, oldHeat);
+        }
 
-    //    for (int i = 0; i < steps; i++) {
-    //        //TODO calculate centriod as heat is built up
-    //        PropagateHeat(map, newHeat, oldHeat);
-    //        CoolOldHeatSearcher(map, oldHeat, searchingPoint);
-    //        //CoolOldHeat(searchMap, searchOldHeat);
-    //        yield return new WaitForEndOfFrame();
-    //    }
+        for (int i = 0; i < steps; i++) {
+            //TODO calculate centriod as heat is built up
+            PropagateHeat(map, newHeat, oldHeat);
+            CoolOldHeatSearcher(map, oldHeat, searchingPoint);
+            //CoolOldHeat(searchMap, searchOldHeat);
+            yield return new WaitForEndOfFrame();
+        }
 
-    //    //TODO move this to another function
-    //    //TODO call this async from search propagation
-    //    //TODO convert search prop to continous
-    //    if (newHeat.Count > 1)
-    //        onFinished(CreateClustersFromHeat(newHeat));
-    //}
+        //TODO move this to another function
+        //TODO call this async from search propagation
+        //TODO convert search prop to continous
+        //if (newHeat.Count > 1)
+        //    onFinished(CreateClustersFromHeat(newHeat));
+    }
 
     //public IEnumerator HeatWaveSearchPropagationStep(Vector3 targetPosition, Vector3 searcherPos, GSearch gSearch, float PROPTIME = 1f, bool firstTime = false) {
     //    targetPosition = choosenSearchPoint;

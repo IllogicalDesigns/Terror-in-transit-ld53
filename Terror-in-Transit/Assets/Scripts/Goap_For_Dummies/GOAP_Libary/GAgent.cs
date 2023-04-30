@@ -44,6 +44,17 @@ public class GAgent : MonoBehaviour {
         }
     }
 
+    public bool isBehind(Vector3 targetVector) {
+        Vector3 playerPosition = transform.position;
+        Vector3 directionToVector = targetVector - playerPosition;
+        float dotProduct = Vector3.Dot(directionToVector, transform.forward);
+
+        if (dotProduct < 0)
+            return true;
+        else
+            return false;
+    }
+
     public void CompleteAction() {
         if (currentAction) {
             StopCoroutine(currentAction.performCoroutine);
@@ -54,6 +65,7 @@ public class GAgent : MonoBehaviour {
     }
 
     public void Replan(bool force = false) {
+        Debug.Log("Replan!");
         if (currentAction == null) {
             //Debug.Log("Current action is null");
             return;

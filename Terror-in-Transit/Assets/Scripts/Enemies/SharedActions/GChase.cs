@@ -4,16 +4,23 @@ using UnityEngine;
 
 public class GChase : GAction {
     private Transform target;
+    private TrackedTarget trackedTarget;
+    [SerializeField] private float agentSpeed = 3.5f;
 
-    private bool isPerforming = false;
+    [SerializeField] private float closeDist = 2f;
 
     public override void Interruppted() {
+        StopAllCoroutines();
     }
 
     public override IEnumerator Perform() {
-        isPerforming = true;
-        yield return AgentHelpers.GoToPosition(gAgent.agent, target.position);
-        isPerforming = false;
+        do {
+            gAgent.agent.isStopped = false;
+            gAgent.agent.SetDestination(trackedTarget.rawPosition);
+            yield return new WaitForSeconds(0.1f);
+        } while (Vector3.Distance(transform.position, trackedTarget.rawPosition) > closeDist);
+
+        yield return new WaitForSeconds(1f);
         CompletedAction();
     }
 
@@ -27,18 +34,22 @@ public class GChase : GAction {
         var tracked = gAgent.agentState.states["CurrentTarget"] as TrackedTarget;
         target = tracked.stimulator.transform;
 
+        if (target == null) return false;
+
         gAgent.agentState.SetState("AgressionLevel", GGhost.Agression.agressive);
+
+        gAgent.agent.speed = agentSpeed;
+        gameObject.SendMessage("SetLightColor", LightColor.LightAwareness.hostile, SendMessageOptions.DontRequireReceiver);
 
         return true;
     }
 
     public override bool IsAchievable() {
-        //if (!gAgent.agentState.hasState("CurrentTarget")) return false;
-        if (!gAgent.agentState.hasState("VisualOnTarget")) return false;
-        if (!gAgent.agentState.hasState("playerAlertLevel")) return false;
+        if (!gAgent.agentState.hasState("CurrentTarget")) return false;
+        trackedTarget = gAgent.agentState.states["CurrentTarget"] as TrackedTarget;
 
-        var alertLevel = (GGhost.PlayerAlertLevel)gAgent.agentState.states["playerAlertLevel"];
-        if (alertLevel != GGhost.PlayerAlertLevel.FullyDetected) return false;
+        if (trackedTarget.detectionType != TrackedTarget.DetectionType.Visual) return false;
+        if (trackedTarget.awareness < 2) return false;
 
         return base.IsAchievable();
     }
@@ -46,15 +57,14 @@ public class GChase : GAction {
     // Start is called before the first frame update
     private void Start() {
         AddPreconditions("CurrentTarget");
-        AddPreconditions("VisualOnTarget");
-        AddPreconditions("playerAlertLevel");
 
         AddEffects("Chase");
     }
 
     // Update is called once per frame
     private void Update() {
-        if (isPerforming && !gAgent.agentState.hasState("VisualOnTarget")) {
+        if (running && trackedTarget.detectionType != TrackedTarget.DetectionType.Visual) {
+            gAgent.AddGoal("SearchChase", 4, true);
             gAgent.Replan();
         }
     }
