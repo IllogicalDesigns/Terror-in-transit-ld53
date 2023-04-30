@@ -128,7 +128,7 @@ public class GGhost : GAgent {
     }
 
     public override void OnSuspicious(TrackedTarget target) {
-        SetBetterCurrentTarget(target);
+        //SetBetterCurrentTarget(target);
     }
 
     public override void OnLostSuspicion(TrackedTarget target) {

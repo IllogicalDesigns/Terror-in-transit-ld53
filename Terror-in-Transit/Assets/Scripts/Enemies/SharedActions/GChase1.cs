@@ -55,8 +55,8 @@ public class GSearchAfterChase : GAction {
         gameObject.SendMessage("SetLightColor", LightColor.LightAwareness.aware, SendMessageOptions.DontRequireReceiver);
 
         isWaiting = true;
-        Vector3 direction = DetectionTransform.position - investigateTarget.lastPosition;
-        yield return influenceMap.HeatWaveChasePropagation(DetectionTransform, RecieveCentroidPositon, searchStesps);
+        Vector3 direction = DetectionTransform.position - investigateTarget.rawPosition;
+        yield return influenceMap.HeatWaveChasePropagation(DetectionTransform, transform, RecieveCentroidPositon, searchStesps);
 
         do {
             yield return new WaitForSeconds(0.1f);
@@ -66,11 +66,25 @@ public class GSearchAfterChase : GAction {
             gAgent.agent.isStopped = false;
             gAgent.agent.SetDestination(chasePosition);
             yield return new WaitForSeconds(0.1f);
-        } while (Vector3.Distance(transform.position, chasePosition) > closeDist);
+            //} while (Vector3.Distance(transform.position, chasePosition) > closeDist);
+        } while (DistanceOnNavMesh(chasePosition) > closeDist);
 
         //yield return AgentHelpers.GoToPosition(gAgent.agent, chasePosition, 2);
 
         CompletedAction();
+    }
+
+    private float DistanceOnNavMesh(Vector3 source) {
+        float totalDist = 0f;
+        NavMeshPath path = new NavMeshPath();
+        NavMesh.CalculatePath(transform.position, source, NavMesh.AllAreas, path);
+
+        for (int i = 0; i < path.corners.Length - 1; i++) {
+            totalDist += Vector3.Distance(path.corners[i], path.corners[i + 1]);
+            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 5f);
+        }
+
+        return totalDist;
     }
 
     public override bool PostPerform() {

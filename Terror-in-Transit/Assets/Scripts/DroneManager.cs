@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
 using DG.Tweening;
 
@@ -21,6 +22,9 @@ public class DroneManager : MonoBehaviour {
     [SerializeField] private float speed = 5f;
     [SerializeField] private float droneMaxDist = 15f;
 
+    [SerializeField] private GameObject ExtraStatic;
+    [SerializeField] private AudioSource staticSrc;
+
     // Start is called before the first frame update
     private void Start() {
         y = transform.position.y;
@@ -28,6 +32,8 @@ public class DroneManager : MonoBehaviour {
 
     // Update is called once per frame
     private void Update() {
+        if (player == null) return;
+
         if (Input.GetKeyDown(KeyCode.M)) {
             isInDrone = !isInDrone;
 
@@ -49,7 +55,15 @@ public class DroneManager : MonoBehaviour {
             var h = Input.GetAxis("Horizontal");
 
             var spd = speed;
-            if (!(Vector3.Distance(new Vector3(player.transform.position.x, y, player.transform.position.z), transform.position) < droneMaxDist)) spd = 1f;
+            if (!(Vector3.Distance(new Vector3(player.transform.position.x, y, player.transform.position.z), transform.position) < droneMaxDist)) {
+                spd = 1f;
+                ExtraStatic.SetActive(true);
+                if (staticSrc != null && !staticSrc.isPlaying) staticSrc.Play();
+            }
+            else {
+                ExtraStatic.SetActive(false);
+                if (staticSrc != null && staticSrc.isPlaying) staticSrc.Stop();
+            }
 
             var timeSpeed = spd * Time.deltaTime;
             transform.Translate(new Vector3(timeSpeed * h, 0, timeSpeed * v));

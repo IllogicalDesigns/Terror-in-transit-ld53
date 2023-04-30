@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GStunned : GAction {
-    [SerializeField] private GameObject hurtBox;
     [SerializeField] private float stunTimer = 5f;
 
     public override void Interruppted() {
+        gameObject.SendMessage("SetStun", false);
     }
 
     public override IEnumerator Perform() {
+        gameObject.SendMessage("SetStun", true);
         gAgent.agent.isStopped = true;
         yield return new WaitForSeconds(stunTimer);
         gAgent.AddGoal("Search", 3, true);
@@ -17,6 +18,7 @@ public class GStunned : GAction {
     }
 
     public override bool PostPerform() {
+        gameObject.SendMessage("SetStun", false);
         return true;
     }
 

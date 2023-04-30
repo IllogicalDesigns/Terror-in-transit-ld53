@@ -31,9 +31,11 @@ public class InfluenceMap : MonoBehaviour {
     private const int STARTINGVAL = 0;
     [SerializeField] private float navMeshSampleAllowance = 0.7f;
 
-    [SerializeField] private float Y = 0;
+    [SerializeField] private float Yoffset = 0;
 
     [SerializeField] private bool isDebug = false;
+
+    [SerializeField] private LayerMask layerMask;
 
     // Start is called before the first frame update
     private void Start() {
@@ -56,11 +58,16 @@ public class InfluenceMap : MonoBehaviour {
 
             for (int x = 0; x < xSize; x++) {
                 for (int z = 0; z < zSize; z++) {
-                    Vector3 location = start + (new Vector3(x, Y, z) * size);
+                    Vector3 location = start + (new Vector3(x, Yoffset, z) * size);
 
-                    location.y = boundsHint.transform.position.y;
+                    location.y = boundsHint.transform.position.y + Yoffset;
 
-                    if (isDebug) Debug.DrawRay(location, transform.up * size, Color.magenta, 15f);
+                    //if (isDebug) Debug.DrawRay(location, Vector3.down * 10f, Color.magenta, 15f);
+
+                    RaycastHit rayHit;
+                    if (Physics.Raycast(location, Vector3.down, out rayHit, 5f, layerMask)) {
+                        location.y = rayHit.point.y;
+                    }
 
                     Color clr = Color.red;
                     NavMeshHit hit;
@@ -95,19 +102,20 @@ public class InfluenceMap : MonoBehaviour {
     }
 
     public Vector3 GridToWorld(int x, int z, int y = 0) {
-        return start + (new Vector3(x, Y, z) * size);
+        return start + (new Vector3(x, Yoffset, z) * size);
     }
 
     public Vector3 GridToWorld(Vector2Int vec) {
         return GridToWorld(vec.x, vec.y);
     }
 
-    public IEnumerator HeatWaveChasePropagation(Transform target, GSearchAfterChase.OnCoroutineFinished onFinished, int PROPSTEPS = 5, float PROPTIME = 0.05f) {
+    public IEnumerator HeatWaveChasePropagation(Transform target, Transform searcher, GSearchAfterChase.OnCoroutineFinished onFinished, int PROPSTEPS = 5, float PROPTIME = 0.05f) {
         int[,] copyOfGrid = GetGridCopy();
         debugCopyOfGrid = copyOfGrid;
 
+        Debug.DrawRay(target.position, searcher.forward, Color.green, 10f);
         var initPosition = target.position;
-        var initDirection = target.position - transform.position;
+        var initDirection = target.position - searcher.position;
 
         var nonRoundedLocation = WorldToGrid(initPosition);
         Vector2Int initGridLocation = new Vector2Int(Mathf.RoundToInt(nonRoundedLocation.x), Mathf.RoundToInt(nonRoundedLocation.y));
@@ -470,12 +478,12 @@ public class InfluenceMap : MonoBehaviour {
         for (int x = 0; x < xSize; x++) {
             for (int z = 0; z < zSize; z++) {
                 if (debugCopyOfGrid[x, z] != -1) {
-                    Vector3 location = start + (new Vector3(x, Y, z) * size);
+                    Vector3 location = start + (new Vector3(x, boundsHint.transform.position.y + Yoffset, z) * size);
                     Gizmos.color = IntToColor(debugCopyOfGrid[x, z]);
                     Gizmos.DrawWireSphere(location, 0.4f);
                 }
                 else {
-                    Vector3 location = start + (new Vector3(x, Y, z) * size);
+                    Vector3 location = start + (new Vector3(x, boundsHint.transform.position.y + Yoffset, z) * size);
                     Gizmos.color = IntToColor(debugCopyOfGrid[x, z]);
                     Gizmos.DrawWireSphere(location, 0.2f);
                 }

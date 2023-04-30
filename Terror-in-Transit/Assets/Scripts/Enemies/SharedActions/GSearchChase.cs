@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.AI;
 
 public class GSearchArea : GAction {
 
@@ -85,12 +86,26 @@ public class GSearchArea : GAction {
                 gAgent.agent.isStopped = false;
                 gAgent.agent.SetDestination(position);
                 yield return new WaitForSeconds(0.1f);
-            } while (Vector3.Distance(transform.position, position) > closeDist);
+                //} while (Vector3.Distance(transform.position, new Vector3(position.x, transform.position.y, position.z)) > closeDist);
+            } while (DistanceOnNavMesh(position) > closeDist);
 
             r++;
         } while (r < 50);
 
         CompletedAction();
+    }
+
+    private float DistanceOnNavMesh(Vector3 source) {
+        float totalDist = 0f;
+        NavMeshPath path = new NavMeshPath();
+        NavMesh.CalculatePath(transform.position, source, NavMesh.AllAreas, path);
+
+        for (int i = 0; i < path.corners.Length - 1; i++) {
+            totalDist += Vector3.Distance(path.corners[i], path.corners[i + 1]);
+            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 5f);
+        }
+
+        return totalDist;
     }
 
     private Vector3 GetUnsearchedPosition(Vector2Int gridPos, Vector3 worldPos, Vector3 position) {

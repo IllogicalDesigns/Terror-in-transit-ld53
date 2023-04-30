@@ -8,20 +8,27 @@ public class GMelee : GAction {
 
     [SerializeField] private GameObject hurtBox;
 
+    [SerializeField] private float delayToHurt = 0.5f;
+    [SerializeField] private float boxLife = 0.25f;
+
     public override void Interruppted() {
+        hurtBox.SetActive(false);
         StopAllCoroutines();
     }
 
     public override IEnumerator Perform() {
         gAgent.agent.isStopped = true;
+        gameObject.SendMessage("PlayAttack");
+        yield return new WaitForSeconds(delayToHurt);
         hurtBox.SetActive(true);
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(boxLife);
         hurtBox.SetActive(false);
         BlacklistAction();
         CompletedAction();
     }
 
     public override bool PostPerform() {
+        hurtBox.SetActive(false);
         return true;
     }
 

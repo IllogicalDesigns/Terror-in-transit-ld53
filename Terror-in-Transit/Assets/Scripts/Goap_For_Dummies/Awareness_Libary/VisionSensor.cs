@@ -43,9 +43,9 @@ public class VisionSensor : MonoBehaviour {
     public float CanWeSeeTarget(GameObject candidateGameObject) {
         var candidatePosition = candidateGameObject.transform.position;
 
-        if (candidateGameObject.TryGetComponent<Crouch>(out Crouch player)) {
-            candidatePosition = GameObject.Find("center Camera").transform.position;
-        }
+        //if (candidateGameObject.TryGetComponent<Crouch>(out Crouch player)) {
+        //    candidatePosition = GameObject.Find("center Camera").transform.position;
+        //}
 
         if (!isValid()) return 0f;
 

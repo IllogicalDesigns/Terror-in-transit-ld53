@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.AI;
 
 public class GInvestigate : GAction {
     private Transform target;
@@ -19,6 +20,9 @@ public class GInvestigate : GAction {
     public override IEnumerator Perform() {
         //if (gAgent.isBehind(target.position)) yield return AgentHelpers.RotateToFaceTarget(gAgent.transform, target, turnSpeed);
         //yield return AgentHelpers.GoToLastTracked(gAgent.agent, trackedTarget, closeDist);
+
+        gAgent.RemoveGoal("SearchChase");
+        gAgent.RemoveGoal("Search");
 
         if (gAgent.isBehind(trackedTarget.rawPosition)) {
             float angleThreshold = 1f;
@@ -42,11 +46,25 @@ public class GInvestigate : GAction {
             gAgent.agent.isStopped = false;
             gAgent.agent.SetDestination(trackedTarget.rawPosition);
             yield return new WaitForSeconds(0.1f);
-        } while (Vector3.Distance(transform.position, trackedTarget.rawPosition) > closeDist);
+            //} while (Vector3.Distance(transform.position, new Vector3(trackedTarget.rawPosition.x, transform.position.y, trackedTarget.rawPosition.z)) > closeDist);
+        } while (DistanceOnNavMesh(trackedTarget.rawPosition) > closeDist);
 
         yield return new WaitForSeconds(waitAtInvestigation);
 
         CompletedAction();
+    }
+
+    private float DistanceOnNavMesh(Vector3 source) {
+        float totalDist = 0f;
+        NavMeshPath path = new NavMeshPath();
+        NavMesh.CalculatePath(transform.position, source, NavMesh.AllAreas, path);
+
+        for (int i = 0; i < path.corners.Length - 1; i++) {
+            totalDist += Vector3.Distance(path.corners[i], path.corners[i + 1]);
+            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 5f);
+        }
+
+        return totalDist;
     }
 
     public override bool PostPerform() {
