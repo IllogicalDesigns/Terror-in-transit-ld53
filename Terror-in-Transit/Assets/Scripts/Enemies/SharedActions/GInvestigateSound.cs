@@ -24,6 +24,8 @@ public class GInvestigate : GAction {
         gAgent.RemoveGoal("SearchChase");
         gAgent.RemoveGoal("Search");
 
+        gameObject.SendMessage("BarkLine", "Investigate");
+
         if (gAgent.isBehind(trackedTarget.rawPosition)) {
             float angleThreshold = 1f;
             float rotationTime = 2f;
@@ -42,29 +44,19 @@ public class GInvestigate : GAction {
             }
         }
 
+        Vector3 oldPos = transform.position;
         do {
             gAgent.agent.isStopped = false;
             gAgent.agent.SetDestination(trackedTarget.rawPosition);
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.01f);
             //} while (Vector3.Distance(transform.position, new Vector3(trackedTarget.rawPosition.x, transform.position.y, trackedTarget.rawPosition.z)) > closeDist);
-        } while (DistanceOnNavMesh(trackedTarget.rawPosition) > closeDist);
+            if (transform.position == oldPos) break;
+            else oldPos = transform.position;
+        } while (AgentHelpers.DistanceOnNavMesh(transform, trackedTarget.rawPosition) > closeDist);
 
         yield return new WaitForSeconds(waitAtInvestigation);
 
         CompletedAction();
-    }
-
-    private float DistanceOnNavMesh(Vector3 source) {
-        float totalDist = 0f;
-        NavMeshPath path = new NavMeshPath();
-        NavMesh.CalculatePath(transform.position, source, NavMesh.AllAreas, path);
-
-        for (int i = 0; i < path.corners.Length - 1; i++) {
-            totalDist += Vector3.Distance(path.corners[i], path.corners[i + 1]);
-            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 5f);
-        }
-
-        return totalDist;
     }
 
     public override bool PostPerform() {

@@ -62,32 +62,22 @@ public class GPatrol : GAction {
                 }
             }
 
+            Vector3 oldPos = transform.position;
             do {
                 //var pos = new Vector3(patrolPoint.position.x, transform.position.y, patrolPoint.position.z);
                 gAgent.agent.isStopped = false;
                 gAgent.agent.SetDestination(patrolPoint.position);
-                yield return new WaitForSeconds(0.1f);
+                yield return new WaitForSeconds(0.01f);
                 //} while (Vector3.Distance(transform.position, pos) > closeDist);
-            } while (DistanceOnNavMesh(patrolPoint.position) > closeDist);
+                if (transform.position == oldPos) break;
+                else oldPos = transform.position;
+            } while (AgentHelpers.DistanceOnNavMesh(transform, patrolPoint.position) > closeDist);
 
             //yield return AgentHelpers.GoToTransform(gAgent.agent, patrolPoint);
             yield return new WaitForSeconds(waitAtEachPoint);
         }
 
         CompletedAction();
-    }
-
-    private float DistanceOnNavMesh(Vector3 source) {
-        float totalDist = 0f;
-        NavMeshPath path = new NavMeshPath();
-        NavMesh.CalculatePath(transform.position, source, NavMesh.AllAreas, path);
-
-        for (int i = 0; i < path.corners.Length - 1; i++) {
-            totalDist += Vector3.Distance(path.corners[i], path.corners[i + 1]);
-            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 5f);
-        }
-
-        return totalDist;
     }
 
     public override bool PostPerform() {

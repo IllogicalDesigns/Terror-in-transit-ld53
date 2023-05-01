@@ -76,36 +76,26 @@ public class GSearchArea : GAction {
             if (position == transform.position) break;  //If no new unsearched points exist, break out
 
             if (isBehind(position)) {
-                gameObject.BroadcastMessage("SetLookAround", true);
+                //gameObject.BroadcastMessage("SetLookAround", true);
                 yield return AgentHelpers.RotateToFaceTarget(transform, position, rotateSpeed);
-                gameObject.BroadcastMessage("SetLookAround", false);
+                //gameObject.BroadcastMessage("SetLookAround", false);
             }
 
+            Vector3 oldPos = transform.position;
             //yield return AgentHelpers.GoToPosition(gAgent.agent, position, closeDist);
             do {
                 gAgent.agent.isStopped = false;
                 gAgent.agent.SetDestination(position);
-                yield return new WaitForSeconds(0.1f);
+                yield return new WaitForSeconds(0.01f);
                 //} while (Vector3.Distance(transform.position, new Vector3(position.x, transform.position.y, position.z)) > closeDist);
-            } while (DistanceOnNavMesh(position) > closeDist);
+                if (transform.position == oldPos) break;
+                else oldPos = transform.position;
+            } while (AgentHelpers.DistanceOnNavMesh(transform, position) > closeDist);
 
             r++;
         } while (r < 50);
 
         CompletedAction();
-    }
-
-    private float DistanceOnNavMesh(Vector3 source) {
-        float totalDist = 0f;
-        NavMeshPath path = new NavMeshPath();
-        NavMesh.CalculatePath(transform.position, source, NavMesh.AllAreas, path);
-
-        for (int i = 0; i < path.corners.Length - 1; i++) {
-            totalDist += Vector3.Distance(path.corners[i], path.corners[i + 1]);
-            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 5f);
-        }
-
-        return totalDist;
     }
 
     private Vector3 GetUnsearchedPosition(Vector2Int gridPos, Vector3 worldPos, Vector3 position) {

@@ -18,27 +18,19 @@ public class GChase : GAction {
         gAgent.RemoveGoal("SearchChase");
         gAgent.RemoveGoal("Search");
 
+        gameObject.SendMessage("BarkLine", "Spotted");
+
+        Vector3 oldPos = transform.position;
         do {
             gAgent.agent.isStopped = false;
             gAgent.agent.SetDestination(trackedTarget.rawPosition);
-            yield return new WaitForSeconds(0.1f);
-        } while (DistanceOnNavMesh(trackedTarget.rawPosition) > closeDist);
+            yield return new WaitForSeconds(0.01f);
+            if (transform.position == oldPos) break;
+            else oldPos = transform.position;
+        } while (AgentHelpers.DistanceOnNavMesh(transform, trackedTarget.rawPosition) > closeDist);
 
         yield return new WaitForSeconds(1f);
         CompletedAction();
-    }
-
-    private float DistanceOnNavMesh(Vector3 source) {
-        float totalDist = 0f;
-        NavMeshPath path = new NavMeshPath();
-        NavMesh.CalculatePath(transform.position, source, NavMesh.AllAreas, path);
-
-        for (int i = 0; i < path.corners.Length - 1; i++) {
-            totalDist += Vector3.Distance(path.corners[i], path.corners[i + 1]);
-            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 5f);
-        }
-
-        return totalDist;
     }
 
     public override bool PostPerform() {

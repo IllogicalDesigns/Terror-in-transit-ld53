@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using DG.Tweening;
 
 public class Footsteps : MonoBehaviour {
     [SerializeField] private Vector3 offset = new Vector3(0, 1, 0);
@@ -34,6 +36,9 @@ public class Footsteps : MonoBehaviour {
     [SerializeField] private float runstepTime = 0.25f;
     private float timer;
 
+    [SerializeField] private Image noiseIcon;
+    [SerializeField] private float noiseTime = 1f;
+
     // Start is called before the first frame update
     private void Start() {
         playerMovement = gameObject.GetComponent<PlayerMovement>();
@@ -59,10 +64,22 @@ public class Footsteps : MonoBehaviour {
         }
     }
 
+    public void PlayJumpSound() {
+        PlayRunstepSFX();
+    }
+
     public void PlayLeavesSound() {
+        ShowNoiseSymbol();
+
         footstepHearableSound.EmitSound();
         wetFootstepSFX.pitch = leavesFootstepStartingPitch + Random.Range(-leavesFootstepPitchVariance, leavesFootstepPitchVariance);
         wetFootstepSFX.Play();
+    }
+
+    public void ShowNoiseSymbol() {
+        noiseIcon.DOFade(0.5f, 0.05f).OnComplete(() => {
+            noiseIcon.DOFade(0f, noiseTime);
+        });
     }
 
     public void PlayCrouchStepSFX() {
@@ -122,6 +139,8 @@ public class Footsteps : MonoBehaviour {
                 footstepHearableSound.EmitSound();
                 runStepSFX.pitch = runStepStartingPitch + Random.Range(-runStepPitchVariance, runStepPitchVariance);
                 runStepSFX.Play();
+
+                ShowNoiseSymbol();
             }
         }
 

@@ -109,8 +109,8 @@ public class AwarenessSystem : MonoBehaviour {
 
     // Update is called once per frame
     private void FixedUpdate() {
-        trackedObjectsDebug.Clear();
-        if (targets.Count > 0) trackedObjectsDebug.AddRange(targets.Values);
+        //trackedObjectsDebug.Clear();
+        //if (targets.Count > 0) trackedObjectsDebug.AddRange(targets.Values);
     }
 
     // Update is called once per frame

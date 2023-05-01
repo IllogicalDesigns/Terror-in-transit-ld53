@@ -17,7 +17,8 @@ public class GMelee : GAction {
     }
 
     public override IEnumerator Perform() {
-        gAgent.agent.isStopped = true;
+        //gAgent.agent.isStopped = true;
+        gAgent.agent.stoppingDistance = 0f;
         gameObject.SendMessage("PlayAttack");
         yield return new WaitForSeconds(delayToHurt);
         hurtBox.SetActive(true);

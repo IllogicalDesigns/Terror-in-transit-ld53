@@ -53,6 +53,7 @@ public class PlayerMovement : MonoBehaviour {
     private void HandleJumpPress() {
         if (Input.GetButton("Jump")) {
             moveDirection.y = jumpSpeed;
+            gameObject.SendMessage("PlayJumpSound");
         }
     }
 

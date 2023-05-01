@@ -44,6 +44,26 @@ public static class AgentHelpers {
         } while (timeOut > 0f);
     }
 
+    public static float DistanceOnNavMesh(Transform trans, Vector3 source) {
+        var crowDist = Vector3.Distance(trans.position, source);
+
+        if (crowDist > 5f) return crowDist;
+
+        float totalDist = 0f;
+        NavMeshPath path = new NavMeshPath();
+        NavMesh.CalculatePath(trans.position, source, NavMesh.AllAreas, path);
+
+        for (int i = 0; i < path.corners.Length - 1; i++) {
+            totalDist += Vector3.Distance(path.corners[i], path.corners[i + 1]);
+            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 5f);
+            if (totalDist < crowDist) break;
+        }
+
+        if (totalDist < crowDist) return crowDist;
+
+        return totalDist;
+    }
+
     public static IEnumerator RotateToFaceTarget(Transform transform, Vector3 target, float turnSpeed = 360f) {
         float timeOut = 5f;
         do {

@@ -62,34 +62,40 @@ public class GSearchAfterChase : GAction {
             yield return new WaitForSeconds(0.1f);
         } while (isWaiting);
 
+        Vector3 oldPos = transform.position;
         do {
             gAgent.agent.isStopped = false;
             gAgent.agent.SetDestination(chasePosition);
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.01f);
             //} while (Vector3.Distance(transform.position, chasePosition) > closeDist);
-        } while (DistanceOnNavMesh(chasePosition) > closeDist);
+            if (transform.position == oldPos) break;
+            else oldPos = transform.position;
+        } while (AgentHelpers.DistanceOnNavMesh(transform, chasePosition) > closeDist);
 
         //yield return AgentHelpers.GoToPosition(gAgent.agent, chasePosition, 2);
 
         CompletedAction();
     }
 
-    private float DistanceOnNavMesh(Vector3 source) {
-        float totalDist = 0f;
-        NavMeshPath path = new NavMeshPath();
-        NavMesh.CalculatePath(transform.position, source, NavMesh.AllAreas, path);
-
-        for (int i = 0; i < path.corners.Length - 1; i++) {
-            totalDist += Vector3.Distance(path.corners[i], path.corners[i + 1]);
-            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.cyan, 5f);
-        }
-
-        return totalDist;
-    }
-
     public override bool PostPerform() {
         chasePosition = Vector3.zero;
         gAgent.AddGoal("Search", 6, true);
+
+        //Bark here to get all AIs to search
+        gameObject.SendMessage("BarkLine", "BroadSearch");
+
+        var guards = FindObjectsOfType<GGhost>();
+
+        bool confirmed = false;
+        foreach (var guard in guards) {
+            guard.AddGoal("Search", 6, true);
+            guard.Replan();
+
+            if (confirmed || guard.gameObject == gameObject) continue;
+            guard.SendMessage("BarkLine", "Confirm");
+            confirmed = true;
+        }
+
         return true;
     }
 

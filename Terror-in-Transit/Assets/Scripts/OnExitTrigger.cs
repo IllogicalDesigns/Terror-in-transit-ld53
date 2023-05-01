@@ -8,7 +8,7 @@ public class OnExitTrigger : MonoBehaviour {
     [SerializeField] private string requiredTag = "";
 
     private void OnTriggerExit(Collider other) {
-        if (other.CompareTag(requiredTag))
+       if (other.CompareTag(requiredTag))
             onTriggerEnter.Invoke();
     }
 }
