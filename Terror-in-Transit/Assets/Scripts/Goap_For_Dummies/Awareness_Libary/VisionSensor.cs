@@ -31,6 +31,8 @@ public class VisionSensor : MonoBehaviour {
 
     private float peripheryMulti = 0.5f, primaryMulti = 1f;
 
+    [SerializeField] private float minY = -1f, maxY = 3f;
+
     private void Awake() {
         cosVisConeAngle = Mathf.Cos(visionAngle * Mathf.Deg2Rad);
     }
@@ -50,6 +52,8 @@ public class VisionSensor : MonoBehaviour {
         if (!isValid()) return 0f;
 
         if (!isInRange()) return 0f;
+
+        if (!isInHeight()) return 0f;
 
         Vector3 direction = candidatePosition - transform.position;
 
@@ -82,6 +86,23 @@ public class VisionSensor : MonoBehaviour {
             }
 
             return false;
+        }
+
+        bool isInHeight() {
+            float candidateHeight = candidatePosition.y;
+            float minYNormalized = transform.position.y + minY;
+            float maxYNormalized = transform.position.y + maxY;
+
+            if (candidateHeight >= minYNormalized && candidateHeight <= maxYNormalized) {
+                var pos = new Vector3(candidatePosition.x, transform.position.y, candidatePosition.z);
+                Debug.DrawLine(pos + new Vector3(0f, minY, 0f), pos + new Vector3(0f, maxY, 0f), Color.green);
+                return true;
+            }
+            else {
+                var pos = new Vector3(candidatePosition.x, transform.position.y, candidatePosition.z);
+                Debug.DrawLine(pos + new Vector3(0f, minY, 0f), pos + new Vector3(0f, maxY, 0f), Color.red);
+                return false;
+            }
         }
 
         bool isInCone() {
@@ -210,7 +231,7 @@ public class VisionSensor : MonoBehaviour {
 
             var visionMulti = CanWeSeeTarget(candidateTarget.gameObject);
             if (visionMulti != 0f)
-                awareness.ReportCanSee(candidateTarget, visionMulti);
+                awareness?.ReportCanSee(candidateTarget, visionMulti);
         }
     }
 

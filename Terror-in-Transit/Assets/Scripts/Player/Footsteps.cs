@@ -77,6 +77,11 @@ public class Footsteps : MonoBehaviour {
     }
 
     public void ShowNoiseSymbol() {
+        if (noiseIcon == null) {
+            Debug.Log("Footsteps:ShowNoiseSymbol() noiseIcon is null");
+            return;
+        }
+
         noiseIcon.DOFade(0.5f, 0.05f).OnComplete(() => {
             noiseIcon.DOFade(0f, noiseTime);
         });

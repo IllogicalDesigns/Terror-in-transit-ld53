@@ -20,12 +20,23 @@ public class OnTakeDamage : MonoBehaviour {
     }
 
     public void disableVignette() {
+        if (vignette == null) {
+            Debug.Log("OnTakeDamage:ApplyDamage() vignette is null");
+            return;
+        }
+
         vignette.enabled = false;
     }
 
     public void ApplyDamage(int damage) {
         hurtSrc.Play();
         hurtSource.GenerateImpulse();
+
+        if (vignette == null) {
+            Debug.Log("OnTakeDamage:ApplyDamage() vignette is null");
+            return;
+        }
+
         vignette.DOFade(0.5f, 0.05f).OnComplete(() => {
             vignette.DOFade(0f, vignetteTime);
         });
